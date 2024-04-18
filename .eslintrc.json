@@ -1,0 +1,7 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "rules": {
+    "max-len": ["error", { "code": 200 }],
+    "no-underscore-dangle": "off"
+  }
+}
