@@ -17,7 +17,7 @@ handler.tokenHandler = (requestProperties, callBack) => {
 
 handler._token = {};
 
-handler._token.get = (requestProperties, callBack) => {
+handler._token.post = (requestProperties, callBack) => {
   const phone =
     typeof requestProperties.body.phone === 'string' &&
     requestProperties.body.phone.trim().length === 11
@@ -71,7 +71,32 @@ handler._token.get = (requestProperties, callBack) => {
     });
   }
 };
-handler._token.post = (requestProperties, callBack) => {};
+handler._token.get = (requestProperties, callBack) => {
+  // check the token if valid
+  const token =
+    typeof requestProperties.queryStringObject.token === 'string' &&
+    requestProperties.queryStringObject.token.trim().length === 21
+      ? requestProperties.queryStringObject.token
+      : false;
+  if (token) {
+    // lookup the user token
+    data.read('tokens', token, (error, tokenData) => {
+      if (!error && tokenData) {
+        const tokenObj = { ...parseJSON(tokenData) };
+
+        callBack(200, tokenObj);
+      } else {
+        callBack(404, {
+          error: 'Requested token was not found!',
+        });
+      }
+    });
+  } else {
+    callBack(404, {
+      error: 'Requested token was not found!',
+    });
+  }
+};
 
 handler._token.put = (requestProperties, callBack) => {};
 handler._token.delete = (requestProperties, callBack) => {};
