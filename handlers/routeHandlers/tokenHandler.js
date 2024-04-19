@@ -42,6 +42,18 @@ handler._token.get = (requestProperties, callBack) => {
             id: tokenId,
             expires,
           };
+          data.create('tokens', tokenId, tokenObj, (error2) => {
+            if (!error2) {
+              callBack(200, {
+                message: 'Token for this user is created successfully.',
+              });
+            } else {
+              callBack(400, {
+                message:
+                  'There is an error while creating a token for this user!',
+              });
+            }
+          });
         } else {
           callBack(400, {
             error: 'Password not matched',
