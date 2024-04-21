@@ -133,5 +133,28 @@ handler._token.put = (requestProperties, callBack) => {
     });
   }
 };
-handler._token.delete = (requestProperties, callBack) => {};
+handler._token.delete = (requestProperties, callBack) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 21
+      ? requestProperties.queryStringObject.id
+      : false;
+  if (id) {
+    data.read('tokens', id, (error, tokenData) => {
+      if (!error && tokenData) {
+        data.delete('tokens', id, (error2) => {
+          if (!error2) {
+            callBack(200, { message: 'Token was successfully deleted.' });
+          } else {
+            callBack(500, 'There was a server side error.');
+          }
+        });
+      } else {
+        callBack(500, { message: 'There was a server side error' });
+      }
+    });
+  } else {
+    callBack(400, { message: 'There was a problem in your requested id!' });
+  }
+};
 module.exports = handler;
