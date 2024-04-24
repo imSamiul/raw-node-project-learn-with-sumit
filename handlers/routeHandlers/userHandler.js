@@ -3,6 +3,7 @@
 // dependencies
 const { hash, parseJSON } = require('../../helpers/utilities');
 const data = require('../../lib/data');
+const tokenHandler = require('./tokenHandler');
 
 const handler = {};
 handler.userHandler = (requestProperties, callBack) => {
@@ -25,16 +26,27 @@ handler._users.get = (requestProperties, callBack) => {
       ? requestProperties.queryStringObject.phone
       : false;
   if (phone) {
-    // lookup the user
-    data.read('users', phone, (error, user) => {
-      if (!error && user) {
-        const userObj = { ...parseJSON(user) };
-        delete userObj.password;
-        callBack(200, userObj);
-      } else {
-        callBack(404, {
-          error: 'Requested user was not found!',
+    // verify token
+    const token =
+      typeof requestProperties.headersObject.token === 'string'
+        ? requestProperties.headersObject.token
+        : false;
+
+    tokenHandler._token.verify(token, phone, (tokenId) => {
+      if (tokenId) {
+        data.read('users', phone, (error, user) => {
+          if (!error && user) {
+            const userObj = { ...parseJSON(user) };
+            delete userObj.password;
+            callBack(200, userObj);
+          } else {
+            callBack(404, {
+              error: 'Requested user was not found!',
+            });
+          }
         });
+      } else {
+        callBack(403, { error: 'Authentication Failure' });
       }
     });
   } else {
@@ -131,35 +143,46 @@ handler._users.put = (requestProperties, callBack) => {
 
   if (phone) {
     if (firstName || lastName || password) {
-      // read the data from db
-      data.read('users', phone, (error, user) => {
-        const userObj = { ...parseJSON(user) };
-        if (!error && userObj) {
-          if (firstName) {
-            userObj.firstName = firstName;
-          }
-          if (lastName) {
-            userObj.lastName = lastName;
-          }
-          if (password) {
-            userObj.password = hash(password);
-          }
-          data.update('users', phone, userObj, (error2) => {
-            if (!error2) {
-              callBack(200, {
-                message: 'user was updated successfully.',
+      // verify token
+      const token =
+        typeof requestProperties.headersObject.token === 'string'
+          ? requestProperties.headersObject.token
+          : false;
+
+      tokenHandler._token.verify(token, phone, (tokenId) => {
+        if (tokenId) {
+          data.read('users', phone, (error, user) => {
+            const userObj = { ...parseJSON(user) };
+            if (!error && userObj) {
+              if (firstName) {
+                userObj.firstName = firstName;
+              }
+              if (lastName) {
+                userObj.lastName = lastName;
+              }
+              if (password) {
+                userObj.password = hash(password);
+              }
+              data.update('users', phone, userObj, (error2) => {
+                if (!error2) {
+                  callBack(200, {
+                    message: 'user was updated successfully.',
+                  });
+                } else {
+                  callBack(500, {
+                    message: 'There was a problem in the server side!',
+                  });
+                }
               });
             } else {
-              callBack(500, {
-                message: 'There was a problem in the server side!',
+              callBack(404, {
+                message:
+                  "There is a problem in your database or user doesn't exits.",
               });
             }
           });
         } else {
-          callBack(404, {
-            message:
-              "There is a problem in your database or user doesn't exits.",
-          });
+          callBack(403, { error: 'Authentication Failure' });
         }
       });
     } else {
