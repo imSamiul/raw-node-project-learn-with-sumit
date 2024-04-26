@@ -245,5 +245,77 @@ handler._check.put = (requestProperties, callBack) => {
     callBack(400, { error: 'You have a problem in your request!' });
   }
 };
-handler._check.delete = (requestProperties, callBack) => {};
+handler._check.delete = (requestProperties, callBack) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 21
+      ? requestProperties.queryStringObject.id
+      : false;
+  if (id) {
+    data.read('checks', id, (error, checkData) => {
+      if (!error && checkData) {
+        const checkObj = parseJSON(checkData);
+        const token =
+          typeof requestProperties.headersObject.token === 'string'
+            ? requestProperties.headersObject.token
+            : false;
+        tokenHandler._token.verify(
+          token,
+          checkObj.userPhone,
+          (isTokenValid) => {
+            if (isTokenValid) {
+              data.delete('checks', id, (error2) => {
+                if (!error2) {
+                  data.read('users', checkObj.userPhone, (error3, userData) => {
+                    if (!error3 && userData) {
+                      const userObj = parseJSON(userData);
+                      const userChecks =
+                        typeof userObj.checks === 'object' &&
+                        userObj.checks instanceof Array
+                          ? userObj.checks
+                          : [];
+                      const indexOfCheck = userObj.checks.indexOf(id);
+                      if (indexOfCheck > -1) {
+                        userObj.checks.splice(indexOfCheck, 1);
+                        userObj.checks = userChecks;
+                        data.update(
+                          'users',
+                          userObj.phone,
+                          userObj,
+                          (error4) => {
+                            if (!error4) {
+                              callBack(200);
+                            } else {
+                              callBack(500, {
+                                error: 'Error while updating the user data.',
+                              });
+                            }
+                          },
+                        );
+                      } else {
+                        callBack(400, {
+                          error: 'Item not found in user data object',
+                        });
+                      }
+                    } else {
+                      callBack(500, { error: 'Error while fetching userData' });
+                    }
+                  });
+                } else {
+                  callBack(500, { error: 'Error deleting check data' });
+                }
+              });
+            } else {
+              callBack(403, { error: 'Authentication Failure' });
+            }
+          },
+        );
+      } else {
+        callBack(500, { error: 'Id not found' });
+      }
+    });
+  } else {
+    callBack(400, { error: 'You have a problem in your request' });
+  }
+};
 module.exports = handler;
