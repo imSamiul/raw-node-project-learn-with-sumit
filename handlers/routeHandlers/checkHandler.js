@@ -121,7 +121,39 @@ handler._check.post = (requestProperties, callBack) => {
     callBack(400, { error: 'You have a problem in your request.' });
   }
 };
-handler._check.get = (requestProperties, callBack) => {};
+handler._check.get = (requestProperties, callBack) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 21
+      ? requestProperties.queryStringObject.id
+      : false;
+
+  if (id) {
+    data.read('checks', id, (error, checkData) => {
+      if (!error && checkData) {
+        const token =
+          typeof requestProperties.headersObject.token === 'string'
+            ? requestProperties.headersObject.token
+            : false;
+        tokenHandler._token.verify(
+          token,
+          parseJSON(checkData).userPhone,
+          (tokenIsValid) => {
+            if (tokenIsValid) {
+              callBack(200, parseJSON(checkData));
+            } else {
+              callBack(403, { error: 'Authentication failure' });
+            }
+          },
+        );
+      } else {
+        callBack(500, { error: " ID doesn't exist!" });
+      }
+    });
+  } else {
+    callBack(400, { error: 'You have a problem in your request.' });
+  }
+};
 
 handler._check.put = (requestProperties, callBack) => {};
 handler._check.delete = (requestProperties, callBack) => {};
