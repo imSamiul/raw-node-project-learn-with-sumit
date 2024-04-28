@@ -1,0 +1,9 @@
+{
+  "id": "sfzbg5c3b8j81owqqa5t1",
+  "userPhone": "01517868247",
+  "protocol": "https",
+  "url": "youtube.com",
+  "method": "POST",
+  "successCodes": [402, 403],
+  "timeOutSeconds": 3
+}

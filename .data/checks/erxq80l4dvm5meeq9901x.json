@@ -1,0 +1,9 @@
+{
+  "id": "erxq80l4dvm5meeq9901x",
+  "userPhone": "01517868247",
+  "protocol": "https",
+  "url": "spotify.com",
+  "method": "POST",
+  "successCodes": [400, 403],
+  "timeOutSeconds": 3
+}

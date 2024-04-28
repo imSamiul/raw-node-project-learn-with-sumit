@@ -1,0 +1,9 @@
+{
+  "id": "j0q1gnngy2b8ooxpw9q8v",
+  "userPhone": "01517868247",
+  "protocol": "https",
+  "url": "instagram.com",
+  "method": "POST",
+  "successCodes": [200, 203],
+  "timeOutSeconds": 3
+}
