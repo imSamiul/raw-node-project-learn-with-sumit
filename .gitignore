@@ -3,7 +3,7 @@
 node_modules/
 /.pnp
 .pnp.js
-.environment
+
 # testing
 /coverage
 
@@ -20,3 +20,4 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/helpers/environment.js
